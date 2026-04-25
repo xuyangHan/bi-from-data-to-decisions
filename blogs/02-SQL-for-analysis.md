@@ -2,10 +2,12 @@
 
 Teach *how to think before writing SQL*.
 
-In BI work, SQL isn’t the goal—it’s just the tool.
+In BI work, SQL isn’t the goal, but it’s just the tool.
 The real goal is answering business questions **correctly and confidently**.
 
 This post focuses on the thinking process that helps you avoid wrong conclusions *before* you write your first `SELECT`.
+
+![SQL for BI](../assets/azure_2_sqltopbi.png)
 
 ---
 
@@ -84,7 +86,7 @@ Before writing SQL, break the question into three parts:
 
 If any of these are unclear, pause.
 
-Most BI rework doesn’t come from bad SQL—it comes from **unclear definitions**.
+Most BI rework doesn’t come from bad SQL, but it comes from **unclear definitions**.
 
 ---
 
@@ -158,13 +160,13 @@ Think of BI work as a pipeline:
 
 If the structured layer is weak, everything downstream becomes fragile.
 
-Most “SQL mistakes” aren’t really SQL problems—they’re **modeling and definition problems**.
+Most “SQL mistakes” aren’t really SQL problems, but they’re **modeling and definition problems**.
 
 ---
 
 ## 💡 Key takeaway
 
-> Most BI SQL mistakes happen before writing SQL—not inside it.
+> Most BI SQL mistakes happen before writing SQL, not inside it.
 
 When you slow down and define:
 
