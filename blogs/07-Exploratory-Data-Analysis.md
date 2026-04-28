@@ -1,4 +1,4 @@
-# Exploratory Data Analysis for Business Questions
+# Python Exploratory Data Analysis for Business Intelligence (BI)
 
 This post is about learning how to **think with data**, not just work with it.
 
