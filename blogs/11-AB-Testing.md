@@ -77,45 +77,106 @@ A clean process usually looks like this:
 7. Stop only when pre-defined criteria are met.
 8. Analyze results and make a decision.
 
-Before launching, decide your stop conditions in advance. This avoids changing rules mid-test when early numbers are tempting.
+To make these steps concrete, use this sample scenario:
 
-## 6) Common Pitfalls and Biases
+- **Business context:** ecommerce checkout page
+- **Change being tested:** CTA text from "Buy Now" (control) to "Complete Purchase" (variant)
+- **Primary metric:** checkout conversion rate
+- **Guardrail metric:** refund rate
 
-Many failed tests are process failures, not math failures:
+### Step-by-step Example
 
-- **Peeking too early:** ending a test as soon as results look good inflates false positives
+**1-2) Goal, hypothesis, and success criteria**
+- Goal: increase completed checkouts without harming order quality.
+- Hypothesis: "Variant B will improve checkout conversion by at least 2% relative."
+- Success criteria (defined before launch):
+  - Primary metric improves with statistical significance at alpha = 0.05
+  - 95% confidence interval excludes 0
+  - Guardrail (refund rate) does not worsen beyond an agreed threshold
+
+**3) Sample size and duration**
+- Assume baseline conversion is 10.0%.
+- Minimum detectable effect (MDE) is +2% relative (10.0% to 10.2%).
+- Power target is 80% at alpha = 0.05.
+- Estimated duration: 2 weeks at current traffic levels.
+
+**4) Tracking validation**
+Before launch, run a short A/A check (same experience in both groups) to confirm:
+- event names fire correctly,
+- counts look consistent across groups,
+- traffic split is near expected (for example, 50/50).
+
+**5-6) Launch and monitoring**
+Monitor daily health signals, not final significance:
+- traffic split stability,
+- missing events,
+- unusual jumps caused by outages or campaigns.
+
+**Potential visualization:** daily line chart of conversion for A and B, with deployment and incident markers.
+
+### Sample Query and Result Snapshot
+
+```sql
+-- Example aggregation for experiment-level metrics
+SELECT
+  variant,
+  COUNT(DISTINCT user_id) AS users,
+  SUM(CASE WHEN converted = 1 THEN 1 ELSE 0 END) AS conversions,
+  1.0 * SUM(CASE WHEN converted = 1 THEN 1 ELSE 0 END) / COUNT(DISTINCT user_id) AS conversion_rate,
+  AVG(refund_flag) AS refund_rate
+FROM experiment_events
+WHERE experiment_id = 'checkout_cta_test_v1'
+GROUP BY variant;
+```
+
+Example output:
+- Control (A): 50,000 users, 5,000 conversions, **10.00%** conversion, **1.80%** refund rate
+- Variant (B): 50,300 users, 5,216 conversions, **10.37%** conversion, **1.85%** refund rate
+
+Interpretation:
+- Absolute lift = **+0.37 percentage points**
+- Relative lift = **+3.7%**
+- If the confidence interval for lift is, for example, **[+0.10pp, +0.64pp]**, the effect is likely real.
+- Guardrail moved slightly (+0.05pp), so decision depends on whether that increase is within acceptable risk.
+
+**Potential visualizations for interpretation:**
+- Bar chart: conversion rate by variant with confidence intervals
+- Line chart: cumulative lift over time
+- Segment heatmap: lift by device type, channel, and new vs returning users
+
+**7-8) Stop and decide**
+Stop only when pre-defined conditions are met, then choose one:
+- **Roll out** if primary metric improves and guardrails are healthy
+- **Iterate** if there is promise but risk signals or unclear segments
+- **Archive** if impact is negligible or negative
+
+Before launching, decide stop conditions in advance. This avoids changing rules mid-test when early numbers are tempting.
+
+## 6) Practical Execution: Pitfalls, Interpretation, and Decision Checklist
+
+Most failed tests are process failures, not math failures. A practical workflow is:
+avoid known bias traps, interpret outcomes in business context, and document a clear decision.
+
+### Common Pitfalls and Biases to Watch
+- **Peeking too early:** stopping when early results look good inflates false positives
 - **Too many simultaneous variants:** increases false discovery risk
 - **Sample ratio mismatch (SRM):** traffic split is not as expected, often due to instrumentation or targeting bugs
 - **Seasonality and external shocks:** campaigns, holidays, outages, or PR events can distort results
 - **Novelty effects:** users may react strongly at first, then behavior normalizes
 
-If the test setup is weak, a "significant" result can still be misleading.
+If setup quality is weak, even a "significant" result can be misleading.
 
-## 7) Interpreting Results for Business Decisions
-
-A sound decision needs both statistics and business context:
-
+### Interpreting Results for Business Decisions
 - Check whether results are statistically valid
-- Evaluate whether the effect is large enough to matter financially
+- Evaluate whether the effect size is large enough to matter financially
 - Review guardrails (for example, conversion up but refund rate also up)
 - Compare key segments (new vs returning users, mobile vs desktop, channels)
 - Document what was learned, even when the result is neutral
 
 Not every test needs a winner. Inconclusive tests still reduce uncertainty and improve future experiment quality.
 
-## 8) Advanced Fundamentals (Optional)
-
-Once your team is consistent with standard A/B tests, consider:
-
-- **Multivariate testing:** tests multiple elements together, but needs more traffic
-- **Sequential or Bayesian methods:** can offer more flexible decision frameworks
-- **Guardrail metrics design:** avoid local optimization that hurts long-term outcomes
-
-These methods are powerful, but most teams get huge value by mastering A/B basics first.
-
-## 9) Practical Checklist / Template
-
-### Pre-Test Checklist
+### Practical Checklist / Template
+**Pre-test**
 - Business objective is clear
 - Hypothesis is specific and measurable
 - Primary metric and guardrails are defined
@@ -123,13 +184,13 @@ These methods are powerful, but most teams get huge value by mastering A/B basic
 - Tracking/events are validated
 - Stop criteria are written before launch
 
-### During-Test Checklist
+**During test**
 - Traffic split is healthy and stable
 - No major instrumentation or deployment issues
 - External events are logged (campaigns, outages, seasonality)
 - No premature stopping decisions
 
-### Post-Test Decision Template
+**Post-test decision template**
 - **Result:** win / loss / inconclusive
 - **Primary metric impact:** include confidence interval
 - **Guardrail impact:** any risk signals
@@ -137,7 +198,7 @@ These methods are powerful, but most teams get huge value by mastering A/B basic
 - **Decision:** roll out, iterate, or archive
 - **Next test idea:** one concrete follow-up
 
-## Final Takeaway
+## 7) Conclusion and Next Steps
 
 A/B testing is not just a statistical exercise. In BI, it is a decision framework:
 - ask a focused question,
@@ -145,3 +206,10 @@ A/B testing is not just a statistical exercise. In BI, it is a decision framewor
 - and act on measured impact.
 
 When done well, it builds trust in data, improves team alignment, and turns experimentation into a repeatable business advantage.
+
+If simple A/B tests are not good enough for your use case, the next step is to level up your method:
+- **Multivariate testing:** evaluate combinations of changes when one-variable tests miss interaction effects
+- **Sequential or Bayesian methods:** use more flexible decision frameworks when fixed-horizon testing is too rigid
+- **Stronger guardrail design:** prevent local metric wins that damage long-term outcomes
+
+The progression is practical: master the basics first, then adopt advanced methods only when your traffic, instrumentation, and decision needs justify the added complexity.
