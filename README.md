@@ -38,6 +38,10 @@ This repo is:
 
 - [A/B Testing for BI](./blogs/11-AB-Testing.md)
 
+### Interviews
+
+- [BI, Data Analyst, and Data Engineer Interview Questions](./blogs/12-BI-Data-Interview-Questions.md)
+
 ### Tools
 
 - Excel for quick BI analysis
