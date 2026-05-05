@@ -41,6 +41,7 @@ This repo is:
 ### Interviews
 
 - [BI, Data Analyst, and Data Engineer Interview Questions](./blogs/12-BI-Data-Interview-Questions.md)
+- [Data Engineer Interview Questions](./blogs/13-Data-Engineer-Interview-Questions.md)
 
 ### Tools
 
