@@ -30,72 +30,476 @@ Python isn’t just another tool, but it’s a Swiss Army knife for analysts. He
 
 ## 3. Python & Pandas for BI: The Practical Cheat Sheet
 
-You don’t need a CS degree! This is your consolidated, quick-start reference for the most essential Python *and* Pandas operations you’ll use daily as a BI analyst, featuring real code and comments. Scan here for most tasks, from variables to repeatable analytics.
+This is your consolidated, quick-start reference for the most essential Python *and* Pandas operations you’ll use daily as a BI analyst, featuring real code and comments. Scan here for most tasks, from variables to repeatable analytics.
+
+### Python & Pandas BI Cheat Sheet
+
+#### 1. CORE PYTHON BASICS
 
 ```python
-# --- 1. CORE PYTHON BASICS ---
-
 # Variables
-revenue = 15000                  # integer
-month = "January"                # string
-cols = ["Date", "Revenue"]       # list
+revenue = 15000
+month = "January"
 
-# Lists (like Excel columns)
+# Lists
 sales = [120, 300, 450]
-first_sale = sales[0]            # Access by index
-sales.append(600)                # Add item
+sales.append(600)
 
-# Loop through a list
+# Access list item
+print(sales[0])
+
+# Loop
 for amt in sales:
     print(amt)
 
-# Dictionaries (like table rows)
+# Dictionary
 row = {"Date": "2023-01-01", "Revenue": 200}
 print(row["Revenue"])
-row["Region"] = "West"           # Add new key-value
 
-# Functions (reusable logic)
-def total_revenue(sales_list):
-    return sum(sales_list)
+# Function
+def total_revenue(vals):
+    return sum(vals)
+
 print(total_revenue([10, 20, 30]))
 
-# Conditionals
+# Conditional
 amt = 2500
+
 if amt > 1000:
-    print("High value")
+    print("High")
 else:
-    print("Normal value")
+    print("Normal")
+```
 
-# --- 2. PANDAS: SUPERCHARGED DATA ANALYSIS ---
+---
 
+#### 2. PANDAS BASICS
+
+```python
 import pandas as pd
 
-# Reading Data
-df = pd.read_csv("sales.csv")        # Load a CSV as a DataFrame (table)
-print(df.head())                     # Show top 5 rows
+# Read CSV
+df = pd.read_csv("sales.csv")
 
-# Filtering Data
-big_sales = df[df["Revenue"] > 10000]  # Rows with Revenue > 10,000
-just_dates = df["Date"]                # Select a single column
+# Top rows
+print(df.head())
 
-# Aggregations
-total = df["Revenue"].sum()                             # Sum column
-region_summary = df.groupby("Region")["Revenue"].sum()  # Group/aggregate
+# Column selection
+df["Revenue"]
 
-# Writing Data
-df.to_csv("output.csv", index=False)    # Save DataFrame to CSV
+# Multiple columns
+df[["Date", "Revenue"]]
 
-# Merging DataFrames (like SQL JOIN)
-# Requires left_df and right_df with common 'ID' column
-# df_all = pd.merge(left_df, right_df, on="ID", how="inner")
+# Filter rows
+high_sales = df[df["Revenue"] > 10000]
 
-# --- 3. COMMON BI TASKS ---
+# Save CSV
+df.to_csv("output.csv", index=False)
+```
 
-# Loop through all CSV files in a folder
+---
+
+#### 3. LOC vs ILOC (VERY COMMON INTERVIEW QUESTION)
+
+##### loc → label/name based
+
+```python
+df.loc[0]                  # row with index label 0
+df.loc[0, "Revenue"]       # specific cell
+df.loc[:, ["Date", "Revenue"]]
+```
+
+Think:
+
+> “Use actual row/column names”
+
+---
+
+##### iloc → integer position based
+
+```python
+df.iloc[0]                 # first row
+df.iloc[0, 1]              # first row, second column
+df.iloc[:, 0:2]
+```
+
+Think:
+
+> “Use row/column positions”
+
+---
+
+##### Example
+
+```python
+# first 5 rows, first 2 columns
+df.iloc[0:5, 0:2]
+
+# rows where Revenue > 1000
+df.loc[df["Revenue"] > 1000]
+```
+
+---
+
+#### 4. FILTERING & BOOLEAN LOGIC
+
+```python
+# AND
+df[(df["Revenue"] > 1000) & (df["Region"] == "West")]
+
+# OR
+df[(df["Region"] == "West") | (df["Region"] == "East")]
+
+# isin
+df[df["Region"].isin(["West", "East"])]
+
+# NOT
+df[~df["Region"].isin(["West"])]
+```
+
+---
+
+#### 5. NULL / MISSING VALUES
+
+##### Detect nulls
+
+```python
+df.isnull()
+df["Revenue"].isnull()
+```
+
+##### Count nulls
+
+```python
+df.isnull().sum()
+```
+
+##### Drop nulls
+
+```python
+df.dropna()
+
+# Drop rows if Revenue is null
+df.dropna(subset=["Revenue"])
+```
+
+##### Fill nulls
+
+```python
+df["Revenue"] = df["Revenue"].fillna(0)
+```
+
+VERY common interview topic.
+
+---
+
+#### 6. SORTING
+
+```python
+# Ascending
+df.sort_values("Revenue")
+
+# Descending
+df.sort_values("Revenue", ascending=False)
+
+# Multiple columns
+df.sort_values(["Region", "Revenue"])
+```
+
+---
+
+#### 7. GROUPBY (MOST IMPORTANT PANDAS SKILL)
+
+##### SQL equivalent
+
+```sql
+SELECT Region, SUM(Revenue)
+FROM sales
+GROUP BY Region
+```
+
+##### Pandas
+
+```python
+df.groupby("Region")["Revenue"].sum()
+```
+
+---
+
+##### Multiple aggregations
+
+```python
+df.groupby("Region").agg({
+    "Revenue": ["sum", "mean", "max"],
+    "CustomerID": "count"
+})
+```
+
+---
+
+#### 8. APPLY & LAMBDA FUNCTIONS
+
+##### Create calculated column
+
+```python
+df["Tax"] = df["Revenue"] * 0.13
+```
+
+##### Apply custom logic
+
+```python
+df["Category"] = df["Revenue"].apply(
+    lambda x: "High" if x > 1000 else "Low"
+)
+```
+
+Interviewers LOVE this one.
+
+---
+
+#### 9. STRING OPERATIONS
+
+```python
+# lowercase
+df["Name"].str.lower()
+
+# contains
+df[df["Email"].str.contains("@gmail.com")]
+
+# replace
+df["Phone"].str.replace("-", "")
+```
+
+---
+
+#### 10. DATETIME OPERATIONS
+
+SUPER important in BI.
+
+```python
+df["Date"] = pd.to_datetime(df["Date"])
+```
+
+##### Extract parts
+
+```python
+df["Year"] = df["Date"].dt.year
+df["Month"] = df["Date"].dt.month
+df["Day"] = df["Date"].dt.day
+```
+
+##### Filter by date
+
+```python
+df[df["Date"] >= "2024-01-01"]
+```
+
+---
+
+#### 11. MERGING / JOINS
+
+##### SQL INNER JOIN equivalent
+
+```python
+merged = pd.merge(
+    customers,
+    orders,
+    on="CustomerID",
+    how="inner"
+)
+```
+
+##### Join types
+
+```python
+how="left"
+how="right"
+how="outer"
+how="inner"
+```
+
+Very common interview question:
+
+> “Explain left join vs inner join.”
+
+---
+
+#### 12. DUPLICATES
+
+```python
+# Find duplicates
+df.duplicated()
+
+# Remove duplicates
+df.drop_duplicates()
+
+# Remove based on subset
+df.drop_duplicates(subset=["CustomerID"])
+```
+
+---
+
+#### 13. VALUE COUNTS
+
+```python
+df["Region"].value_counts()
+```
+
+Equivalent to frequency analysis.
+
+---
+
+#### 14. RENAME COLUMNS
+
+```python
+df.rename(columns={
+    "Rev": "Revenue"
+})
+```
+
+---
+
+#### 15. COLUMN CREATION / TRANSFORMATION
+
+```python
+df["Profit"] = df["Revenue"] - df["Cost"]
+```
+
+---
+
+#### 16. ITERROWS (Usually Avoid)
+
+```python
+for index, row in df.iterrows():
+    print(row["Revenue"])
+```
+
+But interview tip:
+
+> pandas vectorized operations are preferred over loops for performance.
+
+Good thing to mention.
+
+---
+
+#### 17. PERFORMANCE / BEST PRACTICES
+
+##### Prefer vectorized operations
+
+GOOD:
+
+```python
+df["Tax"] = df["Revenue"] * 0.13
+```
+
+BAD:
+
+```python
+for i in range(len(df)):
+    df.loc[i, "Tax"] = df.loc[i, "Revenue"] * 0.13
+```
+
+---
+
+#### 18. FILE HANDLING / AUTOMATION
+
+```python
 import os
+
 for filename in os.listdir("data_folder"):
     if filename.endswith(".csv"):
-        print(filename)
+
+        path = os.path.join("data_folder", filename)
+
+        df = pd.read_csv(path)
+
+        print(df.head())
+```
+
+---
+
+#### 19. EXCEL FILES
+
+```python
+# Read Excel
+df = pd.read_excel("sales.xlsx")
+
+# Write Excel
+df.to_excel("output.xlsx", index=False)
+```
+
+---
+
+#### 20. COMMON INTERVIEW QUESTIONS
+
+##### Q: loc vs iloc?
+
+- `loc` → label based
+- `iloc` → integer position based
+
+---
+
+##### Q: groupby does what?
+
+Splits data into groups and applies aggregation.
+
+---
+
+##### Q: Why use pandas?
+
+Efficient table/data analysis similar to SQL + Excel combined.
+
+---
+
+##### Q: Why vectorization matters?
+
+Faster and more memory efficient than Python loops.
+
+---
+
+##### Q: Difference between merge and concat?
+
+- `merge` → SQL-style join
+- `concat` → stack/combine datasets
+
+---
+
+#### 21. REALLY USEFUL EXTRA ONES
+
+##### unique values
+
+```python
+df["Region"].unique()
+```
+
+##### number of unique values
+
+```python
+df["CustomerID"].nunique()
+```
+
+##### column names
+
+```python
+df.columns
+```
+
+##### data types
+
+```python
+df.dtypes
+```
+
+##### dataframe info
+
+```python
+df.info()
+```
+
+##### summary stats
+
+```python
+df.describe()
 ```
 
 **Use this cheat sheet as your go-to Python & Pandas reference for BI analysis. Most loading, filtering, summarizing, and scripting tasks start here: combining the best of programming and “Excel++” workflows.**
